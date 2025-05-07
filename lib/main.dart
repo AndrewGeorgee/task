@@ -866,21 +866,27 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
   }
 
   Widget _buildAvatarStack(final TaskItem task) {
-    // Determine how many circles to show based on task.circle
-    final int circleCount = task.circle ?? 0;
+    // Based on the design image, we need to show exactly:
+    // 1. Profile picture
+    // 2. Two white circles
+    // 3. Dark circle with +6 text
     final List<Widget> avatarWidgets = [];
-
-    // First avatar with image (always shown)
+    
+    // Constants for better positioning and appearance
+    const double avatarSize = 32.0; // Increased size to match image
+    const double overlapOffset = 12.0; // More overlap to match image
+    
+    // First avatar with image (profile picture)
     avatarWidgets.add(
       Positioned(
         left: 0,
         child: Container(
-          width: 24,
-          height: 24,
+          width: avatarSize,
+          height: avatarSize,
           decoration: BoxDecoration(
             color: Colors.grey[300],
             shape: BoxShape.circle,
-            border: Border.all(color: HexColor('1E1E1E'), width: 1.5),
+            border: Border.all(color: HexColor('262626'),),
             image: const DecorationImage(
               image: AssetImage('assets/Frame 77134.png'),
               fit: BoxFit.cover,
@@ -890,55 +896,56 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
       ),
     );
 
-    // Add white circles based on task.circle value
-    for (int i = 0; i < circleCount; i++) {
+    // Add exactly 2 white circles as shown in the image
+    for (int i = 0; i < 2; i++) {
       avatarWidgets.add(
         Positioned(
-          left: 12.0 * (i + 1),
+          left: overlapOffset * (i + 1),
           child: Container(
-            width: 24,
-            height: 24,
+            width: avatarSize,
+            height: avatarSize,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: HexColor('1E1E1E'), width: 1.5),
+              border: Border.all(color: HexColor('262626'), ),
             ),
           ),
         ),
       );
     }
 
-    // Only add the +6 indicator when circle count is greater than 1
-    if (circleCount > 1) {
-      avatarWidgets.add(
-        Positioned(
-          left: 36,
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: HexColor('262626'),
-              shape: BoxShape.circle,
-              border: Border.all(color: HexColor('1E1E1E'), width: 1.5),
-            ),
-            child: const Center(
-              child: Text(
-                '+6',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+    // Add the +6 indicator as shown in the image
+    avatarWidgets.add(
+      Positioned(
+        left: overlapOffset * 3, // Position after the 2 white circles
+        child: Container(
+          width: avatarSize,
+          height: avatarSize,
+          decoration: BoxDecoration(
+            color: const Color(0xFF262626), // Dark gray background
+            shape: BoxShape.circle,
+            border: Border.all(color: HexColor('262626'),),
+          ),
+          child: const Center(
+            child: Text(
+              '+6',
+              style: TextStyle(
+                color: Color(0xFFFFB800), // Golden yellow color for the text
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ),
-      );
-    }
+      ),
+    );
 
+    // Fixed width for 4 avatars (1 profile + 2 white + 1 with +6)
+    final double stackWidth = overlapOffset * 4 + (avatarSize - overlapOffset);
+    
     return SizedBox(
-      height: 24,
-      width: 80, // Provide enough width for all avatars
+      height: avatarSize,
+      width: stackWidth, // Dynamic width based on number of avatars
       child: Stack(
         clipBehavior: Clip.none,
         children: avatarWidgets,
