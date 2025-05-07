@@ -295,77 +295,88 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Determine if we need to show a condensed version based on available width
-            final bool isCondensed = constraints.maxWidth < 900;
+            // More adaptive breakpoints for better responsiveness
+            final bool isNarrow = constraints.maxWidth < 600;
+            final bool isCondensed = constraints.maxWidth < 1000;
+            final bool isWide = constraints.maxWidth >= 1000;
 
             return Row(
               children: [
                 // Left side - Logo
                 Padding(
-                  padding: EdgeInsets.only(left: isCondensed ? 20 : 80),
+                  padding: EdgeInsets.only(left: isNarrow ? 16 : (isCondensed ? 24 : 80)),
                   child: Image.asset(
                     'assets/logo.png',
-                    width: isCondensed ? 70 : 90,
-                  ),
-                ),
-                Spacer(),
-                // Navigation items in the center
-                Flexible(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: _navItems.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final item = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                _selectedNavIndex = index;
-                              });
-                            },
-                            child: Container(
-                              height: 64,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: _selectedNavIndex == index
-                                        ? HexColor('FFC268')
-                                        : Colors.transparent,
-                                    width: 4,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                item,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: _selectedNavIndex == index
-                                      ? Colors.white
-                                      : Colors.grey,
-                                  fontWeight: _selectedNavIndex == index
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                    width: isNarrow ? 60 : (isCondensed ? 70 : 90),
                   ),
                 ),
                 
-                // Icons section
+                // For narrow screens, show a menu button instead of nav items
+                if (isNarrow)
+                  IconButton(
+                    icon: Icon(Icons.menu, color: Colors.white),
+                    onPressed: () {
+                      _scaffoldKey.currentState?.openDrawer();
+                    },
+                  ),
+                
+                // Flexible spacer that pushes everything else to the right
+                Spacer(),
+                
+                // Navigation items on the right side
+                if (!isNarrow)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _navItems.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: isCondensed ? 4 : 8),
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedNavIndex = index;
+                            });
+                          },
+                          child: Container(
+                            height: 64,
+                            padding: EdgeInsets.symmetric(horizontal: isCondensed ? 4 : 8),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: _selectedNavIndex == index
+                                      ? HexColor('FFC268')
+                                      : Colors.transparent,
+                                  width: 4,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              item,
+                              style: TextStyle(
+                                fontSize: isCondensed ? 12 : 14,
+                                color: _selectedNavIndex == index
+                                    ? Colors.white
+                                    : Colors.grey,
+                                fontWeight: _selectedNavIndex == index
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                
+                // Icons section - adapt based on screen size
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (!isCondensed) const SizedBox(width: 16),
-                    if (!isCondensed)
+                    // Only show divider on wider screens
+                    if (isWide) const SizedBox(width: 16),
+                    if (isWide)
                       Container(
                         width: 1,
                         height: 22,
@@ -373,8 +384,10 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                           color: HexColor('484848'),
                         ),
                       ),
-                    const SizedBox(width: 16),
-                    if (!isCondensed)
+                    
+                    // Settings icon - only on wider screens
+                    if (isWide) const SizedBox(width: 16),
+                    if (isWide)
                       InkWell(
                         onTap: () {},
                         child: Padding(
@@ -386,7 +399,9 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                           ),
                         ),
                       ),
-                    if (!isCondensed) const SizedBox(width: 16),
+                    
+                    // Notification icon - show on all screens
+                    const SizedBox(width: 8),
                     InkWell(
                       onTap: () {},
                       child: Padding(
@@ -398,7 +413,10 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                         ),
                       ),
                     ),
-                    if (!isCondensed)
+                    
+                    // Profile section - adapt based on screen width
+                    if (!isNarrow) const SizedBox(width: 12),
+                    if (!isNarrow)
                       Container(
                         width: 1,
                         height: 22,
@@ -406,29 +424,36 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                           color: HexColor('484848'),
                         ),
                       ),
-                    if (!isCondensed) const SizedBox(width: 16),
-                    // Notification bell icon
-                    if (!isCondensed)
-                      Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    if (!isCondensed) const SizedBox(width: 16),
-                    if (!isCondensed)
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(16),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/Frame 77134.png'),
-                            fit: BoxFit.cover,
-                          ),
+                    if (!isNarrow) const SizedBox(width: 12),
+                    
+                    // Always show profile picture
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(16),
+                        image: const DecorationImage(
+                          image: AssetImage('assets/Frame 77134.png'),
+                          fit: BoxFit.cover,
                         ),
                       ),
-                    SizedBox(width: isCondensed ? 20 : 30),
+                    ),
+                    
+                    // Only show name on wider screens
+                    if (isWide) const SizedBox(width: 12),
+                    if (isWide)
+                      const Text(
+                        'John Doe',
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    if (isWide) const SizedBox(width: 4),
+                    if (isWide)
+                      const Icon(Icons.keyboard_arrow_down,
+                          color: Colors.white, size: 16),
+                    
+                    // Adaptive right padding
+                    SizedBox(width: isNarrow ? 16 : (isCondensed ? 24 : 80)),
                   ],
                 ),
               ],
