@@ -866,17 +866,17 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
   }
 
   Widget _buildAvatarStack(final TaskItem task) {
-    // Based on the design image, we need to show exactly:
-    // 1. Profile picture
-    // 2. Two white circles
-    // 3. Dark circle with +6 text
+    // Show different number of circles based on task.circle value
+    // When circle: 1, show only profile picture + 1 white circle
+    // When circle: 2 or more, show profile picture + 2 white circles + +6 indicator
+    final int circleCount = task.circle ?? 0;
     final List<Widget> avatarWidgets = [];
     
     // Constants for better positioning and appearance
     const double avatarSize = 32.0; // Increased size to match image
     const double overlapOffset = 12.0; // More overlap to match image
     
-    // First avatar with image (profile picture)
+    // First avatar with image (profile picture) - always shown
     avatarWidgets.add(
       Positioned(
         left: 0,
@@ -896,8 +896,12 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
       ),
     );
 
-    // Add exactly 2 white circles as shown in the image
-    for (int i = 0; i < 2; i++) {
+    // Add white circles based on task.circle value
+    // If circle: 1, add only 1 white circle
+    // If circle: 2 or more, add 2 white circles
+    final int whiteCirclesToShow = circleCount == 1 ? 1 : 2;
+    
+    for (int i = 0; i < whiteCirclesToShow; i++) {
       avatarWidgets.add(
         Positioned(
           left: overlapOffset * (i + 1),
@@ -914,34 +918,39 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
       );
     }
 
-    // Add the +6 indicator as shown in the image
-    avatarWidgets.add(
-      Positioned(
-        left: overlapOffset * 3, // Position after the 2 white circles
-        child: Container(
-          width: avatarSize,
-          height: avatarSize,
-          decoration: BoxDecoration(
-            color: const Color(0xFF262626), // Dark gray background
-            shape: BoxShape.circle,
-            border: Border.all(color: HexColor('262626'),),
-          ),
-          child: const Center(
-            child: Text(
-              '+6',
-              style: TextStyle(
-                color: Color(0xFFFFB800), // Golden yellow color for the text
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+    // Add the +6 indicator only if circle count is 2 or more
+    if (circleCount >= 2) {
+      avatarWidgets.add(
+        Positioned(
+          left: overlapOffset * 3, // Position after the 2 white circles
+          child: Container(
+            width: avatarSize,
+            height: avatarSize,
+            decoration: BoxDecoration(
+              color: const Color(0xFF262626), // Dark gray background
+              shape: BoxShape.circle,
+              border: Border.all(color: HexColor('262626'),),
+            ),
+            child: const Center(
+              child: Text(
+                '+6',
+                style: TextStyle(
+                  color: Color(0xFFFFB800), // Golden yellow color for the text
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
 
-    // Fixed width for 4 avatars (1 profile + 2 white + 1 with +6)
-    final double stackWidth = overlapOffset * 4 + (avatarSize - overlapOffset);
+    // Dynamic width calculation based on number of circles
+    // For circle: 1 -> profile + 1 white circle (2 total)
+    // For circle: 2+ -> profile + 2 white circles + +6 indicator (4 total)
+    final int totalCircles = circleCount == 1 ? 2 : 4;
+    final double stackWidth = overlapOffset * (totalCircles - 1) + avatarSize;
     
     return SizedBox(
       height: avatarSize,
