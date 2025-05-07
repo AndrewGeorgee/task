@@ -309,59 +309,58 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                   ),
                 ),
                 Spacer(),
-                // Navigation - only show if we have enough space
-                if (!isCondensed)
-                  Flexible(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: _navItems.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final item = entry.value;
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _selectedNavIndex = index;
-                                });
-                              },
-                              child: Container(
-                                height: 64,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: _selectedNavIndex == index
-                                          ? HexColor('FFC268')
-                                          : Colors.transparent,
-                                      width: 4,
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  item,
-                                  style: TextStyle(
-                                    fontSize: 14,
+                // Navigation items in the center
+                Flexible(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: _navItems.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedNavIndex = index;
+                              });
+                            },
+                            child: Container(
+                              height: 64,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
                                     color: _selectedNavIndex == index
-                                        ? Colors.white
-                                        : Colors.grey,
-                                    fontWeight: _selectedNavIndex == index
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
+                                        ? HexColor('FFC268')
+                                        : Colors.transparent,
+                                    width: 4,
                                   ),
                                 ),
                               ),
+                              child: Text(
+                                item,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _selectedNavIndex == index
+                                      ? Colors.white
+                                      : Colors.grey,
+                                  fontWeight: _selectedNavIndex == index
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
                             ),
-                          );
-                        }).toList(),
-                      ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
-                // Icons section - simplified for smaller screens
+                ),
+                
+                // Icons section
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -407,7 +406,15 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                           color: HexColor('484848'),
                         ),
                       ),
-                    if (!isCondensed) const SizedBox(width: 12),
+                    if (!isCondensed) const SizedBox(width: 16),
+                    // Notification bell icon
+                    if (!isCondensed)
+                      Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    if (!isCondensed) const SizedBox(width: 16),
                     if (!isCondensed)
                       Container(
                         width: 32,
@@ -421,17 +428,7 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                           ),
                         ),
                       ),
-                    if (!isCondensed) const SizedBox(width: 12),
-                    if (!isCondensed)
-                      const Text(
-                        'John Doe',
-                        style: TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                    if (!isCondensed) const SizedBox(width: 4),
-                    if (!isCondensed)
-                      const Icon(Icons.keyboard_arrow_down,
-                          color: Colors.white, size: 16),
-                    SizedBox(width: isCondensed ? 20 : 80),
+                    SizedBox(width: isCondensed ? 20 : 30),
                   ],
                 ),
               ],
