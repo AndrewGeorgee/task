@@ -1,0 +1,752 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hexcolor/hexcolor.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Task Manager',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.black,
+          elevation: 0,
+        ),
+        textTheme: GoogleFonts.interTextTheme(
+          Theme.of(context).textTheme.apply(bodyColor: Colors.white),
+        ),
+      ),
+      home: const TaskManagerHomePage(),
+    );
+  }
+}
+
+class TaskManagerHomePage extends StatefulWidget {
+  const TaskManagerHomePage({super.key});
+
+  @override
+  State<TaskManagerHomePage> createState() => _TaskManagerHomePageState();
+}
+
+class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
+  final List<TaskItem> _taskItems = [
+    TaskItem(
+      title: 'Item title',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 20),
+      unfinishedTasks: 4,
+      date: 'Jan 16 - Jan 20, 2024',
+      circle: 2,
+    ),
+    TaskItem(
+      date: '5 Nights (Jan 16 - Jan 20, 2024) ',
+      circle: 1,
+      title: 'Long item title highlighted with ellipsis',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 25),
+      unfinishedTasks: 4,
+    ),
+    TaskItem(
+      date: '5 Nights (Jan 16 - Jan 20, 2024) ',
+      circle: 2,
+      title: 'Item title',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 20),
+      unfinishedTasks: 4,
+    ),
+    TaskItem(
+      date: '5 Nights (Jan 16 - Jan 20, 2024) ',
+      circle: 2,
+      title: 'Item title',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 20),
+      unfinishedTasks: 4,
+    ),
+    TaskItem(
+      date: '5 Nights (Jan 16 - Jan 20, 2024) ',
+      circle: 2,
+      title: 'Item title',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 20),
+      unfinishedTasks: 4,
+    ),
+    TaskItem(
+      date: '5 Nights (Jan 16 - Jan 20, 2024) ',
+      circle: 2,
+      title: 'Item title',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 20),
+      unfinishedTasks: 4,
+    ),
+    TaskItem(
+      date: '5 Nights (Jan 16 - Jan 20, 2024) ',
+      circle: 2,
+      title: 'Item title',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 20),
+      unfinishedTasks: 4,
+    ),
+    TaskItem(
+      date: '5 Nights (Jan 16 - Jan 20, 2024) ',
+      circle: 2,
+      title: 'Item title',
+      startDate: DateTime(2024, 1, 16),
+      endDate: DateTime(2024, 1, 20),
+      unfinishedTasks: 4,
+    ),
+  ];
+
+  int _selectedNavIndex = 0;
+  final List<String> _navItems = [
+    'Items',
+    'Pricing',
+    'Info',
+    'Tasks',
+    'Analytics'
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    // Check if we're in mobile view based on screen width
+    final bool isMobileView = MediaQuery.of(context).size.width < 600;
+
+    return Scaffold(
+      body: Column(
+        children: [
+          _buildAppBar(isMobileView),
+          SizedBox(height: isMobileView ? 10 : 20),
+          if (!isMobileView) _buildHeader() else _buildMobileHeader(),
+          SizedBox(
+            height: isMobileView ? 10 : 24,
+          ),
+          Expanded(
+            child: _buildTaskGrid(isMobileView),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(bool isMobileView) {
+    if (isMobileView) {
+      // Mobile app bar design
+      return Container(
+        height: 60,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          border: Border(
+            bottom: BorderSide(color: HexColor('484848'), width: 1),
+          ),
+        ),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Menu icon
+              Icon(Icons.menu, color: Colors.white),
+
+              // Logo
+              Image.asset(
+                'assets/logo.png',
+                width: 80,
+              ),
+
+              // Right side icons
+              Row(
+                children: [
+                  Icon(Icons.settings, color: Colors.white, size: 20),
+                  SizedBox(width: 16),
+                  Icon(Icons.notifications_outlined,
+                      color: Colors.white, size: 20),
+                  SizedBox(width: 16),
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundImage: AssetImage('assets/Frame 77134.png'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // Desktop app bar design
+      return Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          border: Border(
+            bottom: BorderSide(color: HexColor('484848'), width: 1),
+          ),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Determine if we need to show a condensed version based on available width
+            final bool isCondensed = constraints.maxWidth < 900;
+
+            return Row(
+              children: [
+                // Left side - Logo
+                Padding(
+                  padding: EdgeInsets.only(left: isCondensed ? 20 : 80),
+                  child: Image.asset(
+                    'assets/logo.png',
+                    width: isCondensed ? 70 : 90,
+                  ),
+                ),
+                Spacer(),
+                // Navigation - only show if we have enough space
+                if (!isCondensed)
+                  Flexible(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: _navItems.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final item = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _selectedNavIndex = index;
+                                });
+                              },
+                              child: Container(
+                                height: 64,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: _selectedNavIndex == index
+                                          ? HexColor('FFC268')
+                                          : Colors.transparent,
+                                      width: 4,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  item,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _selectedNavIndex == index
+                                        ? Colors.white
+                                        : Colors.grey,
+                                    fontWeight: _selectedNavIndex == index
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                // Icons section - simplified for smaller screens
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!isCondensed) const SizedBox(width: 16),
+                    if (!isCondensed)
+                      Container(
+                        width: 1,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: HexColor('484848'),
+                        ),
+                      ),
+                    const SizedBox(width: 16),
+                    if (!isCondensed)
+                      InkWell(
+                        onTap: () {},
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Image.asset(
+                            'assets/setting-2.png',
+                            width: 24,
+                            height: 24,
+                          ),
+                        ),
+                      ),
+                    if (!isCondensed) const SizedBox(width: 16),
+                    InkWell(
+                      onTap: () {},
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset(
+                          'assets/Icons.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
+                    ),
+                    if (!isCondensed)
+                      Container(
+                        width: 1,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: HexColor('484848'),
+                        ),
+                      ),
+                    if (!isCondensed) const SizedBox(width: 12),
+                    if (!isCondensed)
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(16),
+                          image: const DecorationImage(
+                            image: AssetImage('assets/Frame 77134.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    if (!isCondensed) const SizedBox(width: 12),
+                    if (!isCondensed)
+                      const Text(
+                        'John Doe',
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    if (!isCondensed) const SizedBox(width: 4),
+                    if (!isCondensed)
+                      const Icon(Icons.keyboard_arrow_down,
+                          color: Colors.white, size: 16),
+                    SizedBox(width: isCondensed ? 20 : 80),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    }
+  }
+
+  Widget _buildHeader() {
+    // Calculate total unfinished tasks
+    int totalUnfinishedTasks =
+        _taskItems.fold(0, (sum, task) => sum + task.unfinishedTasks);
+
+    return Container(
+      padding: const EdgeInsets.only(top: 20, left: 80, right: 80),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Items',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: HexColor('1E1E1E'),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/Vector.png',
+                        color: Colors.white,
+                        width: 24,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 14),
+                  Container(
+                    width: 1,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: HexColor('484848'),
+                    ),
+                  ),
+                  SizedBox(width: 14),
+                  Container(
+                    height: 48,
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    decoration: BoxDecoration(
+                      color: HexColor('FFC268'),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.add,
+                          color: Colors.black,
+                          size: 24,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Add a New Item',
+                          style: GoogleFonts.inter(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Items',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: HexColor('1E1E1E'),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
+                Icons.filter_list,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskGrid(bool isMobileView) {
+    return Padding(
+      padding: isMobileView
+          ? const EdgeInsets.symmetric(horizontal: 16)
+          : const EdgeInsets.only(top: 24, left: 80, right: 80),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Target card dimensions
+          const double targetCardWidth = 243.25;
+          const double targetCardHeight = 322;
+          final double aspectRatio = targetCardWidth / targetCardHeight;
+
+          // Determine the appropriate number of columns based on screen width
+          // For mobile view or narrow windows, use a single column
+          final bool isNarrowScreen = constraints.maxWidth < 600;
+          int crossAxisCount = isNarrowScreen
+              ? 1
+              : (constraints.maxWidth / (targetCardWidth + 20))
+                  .floor()
+                  .clamp(1, 5);
+
+          // For mobile view or narrow screens, use a ListView instead of GridView
+          if (isMobileView || isNarrowScreen) {
+            return ListView.builder(
+              itemCount: _taskItems.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildTaskCard(_taskItems[index], true),
+                );
+              },
+            );
+          }
+
+          // For desktop view, use GridView
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: aspectRatio,
+              crossAxisSpacing: 20,
+              mainAxisSpacing: 20,
+            ),
+            itemCount: _taskItems.length,
+            itemBuilder: (context, index) {
+              return _buildTaskCard(_taskItems[index], isMobileView);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTaskCard(TaskItem task, bool isMobileView) {
+    // Use a fixed aspect ratio that matches the Figma design
+    return Container(
+      decoration: BoxDecoration(
+        color: HexColor('1E1E1E'),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.2), width: 1),
+      ),
+      // Fixed height for a more compact card
+      height: 180,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          right: 15,
+          left: 15,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Status button
+
+                  // More menu button
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.more_horiz,
+                          color: Colors.white.withOpacity(0.9),
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: HexColor('#1f1610'),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: HexColor('C25F30'), width: 1),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Pending Approval',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Colors.white,
+                    weight: 8,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Title section
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Text(
+                task.title,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: 6),
+            // Date with calendar icon
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/calendar.png',
+                    width: 22,
+                    height: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    task.date,
+                    style: GoogleFonts.inter(
+                      color:HexColor('999999'),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // // Spacer to push the bottom section down
+            // Spacer(),
+            SizedBox(height: 24),
+            // Divider
+            Container(
+              height: 1,
+              color: Colors.white.withOpacity(0.1),
+            ),
+            SizedBox(height: 20),
+            // Avatar stack and task count
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildAvatarStack(task),
+                  Text(
+                    '${task.unfinishedTasks} unfinished tasks',
+                    style: GoogleFonts.inter(
+                      color:HexColor('999999'),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarStack(final TaskItem task) {
+    // Determine how many circles to show based on task.circle
+    final int circleCount = task.circle ?? 0;
+    final List<Widget> avatarWidgets = [];
+
+    // First avatar with image (always shown)
+    avatarWidgets.add(
+      Positioned(
+        left: 0,
+        child: Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            shape: BoxShape.circle,
+            border: Border.all(color: HexColor('1E1E1E'), width: 1.5),
+            image: const DecorationImage(
+              image: AssetImage('assets/Frame 77134.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Add white circles based on task.circle value
+    for (int i = 0; i < circleCount; i++) {
+      avatarWidgets.add(
+        Positioned(
+          left: 12.0 * (i + 1),
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: HexColor('1E1E1E'), width: 1.5),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Only add the +6 indicator when circle count is greater than 1
+    if (circleCount > 1) {
+      avatarWidgets.add(
+        Positioned(
+          left: 36,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: HexColor('262626'),
+              shape: BoxShape.circle,
+              border: Border.all(color: HexColor('1E1E1E'), width: 1.5),
+            ),
+            child: const Center(
+              child: Text(
+                '+6',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 24,
+      width: 80, // Provide enough width for all avatars
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: avatarWidgets,
+      ),
+    );
+  }
+}
+
+class TaskItem {
+  final String title;
+  final DateTime startDate;
+  final DateTime endDate;
+  final int unfinishedTasks;
+  final String date;
+  final int? circle;
+
+  TaskItem({
+    required this.title,
+    required this.startDate,
+    required this.endDate,
+    required this.unfinishedTasks,
+    required this.date,
+    required this.circle,
+  });
+}
