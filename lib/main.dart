@@ -737,7 +737,7 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                 children: [
                   _buildAvatarStack(task),
                   SizedBox(
-                    width: 50,
+                  
                     child: Text(
                       '${task.unfinishedTasks} unfinished tasks',
                       style: GoogleFonts.inter(
