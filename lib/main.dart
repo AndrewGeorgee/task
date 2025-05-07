@@ -1,8 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'firebase_options.dart';
+import 'models/task_item.dart';
+import 'services/firebase_service.dart';
 
-void main() {
+void main() async {
+  // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  // Initialize Analytics and enable collection
+  FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+  
   runApp(const MyApp());
 }
 
@@ -39,7 +55,63 @@ class TaskManagerHomePage extends StatefulWidget {
 }
 
 class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
-  final List<TaskItem> _taskItems = [
+  // Global key for the scaffold to access the drawer
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  // Initialize task loading from Firebase
+  @override
+  void initState() {
+    super.initState();
+    _loadTasksFromFirebase();
+  }
+  
+  // Load tasks from Firebase
+  Future<void> _loadTasksFromFirebase() async {
+    setState(() {
+      _isLoadingTasks = true;
+    });
+    
+    try {
+      // Check if user is logged in
+      final currentUser = _firebaseService.getCurrentUser();
+      
+      if (currentUser != null) {
+        // User is logged in, load their tasks
+        final tasks = await _firebaseService.getUserTasks();
+        
+        if (tasks.isNotEmpty) {
+          setState(() {
+            _taskItems = tasks;
+            _isLoadingTasks = false;
+          });
+        } else {
+          // If no tasks, keep sample data
+          setState(() {
+            _isLoadingTasks = false;
+          });
+        }
+      } else {
+        // User is not logged in, keep sample data
+        setState(() {
+          _isLoadingTasks = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading tasks: $e');
+      setState(() {
+        _isLoadingTasks = false;
+      });
+    }
+  }
+  // Firebase service for database operations
+  final FirebaseService _firebaseService = FirebaseService();
+  
+  // Flag to track if tasks are loaded from Firebase
+  bool _isLoadingTasks = false;
+  
+  // List of tasks that will be populated from Firebase
+  List<TaskItem> _taskItems = [
+    // Sample data - will be replaced with Firebase data
     TaskItem(
       title: 'Item title',
       startDate: DateTime(2024, 1, 16),
@@ -121,6 +193,8 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
     final bool isMobileView = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: _buildDrawer(),
       body: Column(
         children: [
           _buildAppBar(isMobileView),
@@ -129,9 +203,17 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
           SizedBox(
             height: isMobileView ? 10 : 24,
           ),
-          Expanded(
-            child: _buildTaskGrid(isMobileView),
-          ),
+          // Show loading indicator when fetching tasks from Firebase
+          if (_isLoadingTasks)
+            Expanded(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else
+            Expanded(
+              child: _buildTaskGrid(isMobileView),
+            ),
         ],
       ),
     );
@@ -151,25 +233,46 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
         ),
         child: SafeArea(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Menu icon
-              Icon(Icons.menu, color: Colors.white),
-
+              // Menu icon with tap functionality
+              GestureDetector(
+                onTap: () {
+                  _scaffoldKey.currentState?.openDrawer();
+                },
+                child: Icon(Icons.menu, color: Colors.white),
+              ),
+              SizedBox(width: 16),
               // Logo
               Image.asset(
                 'assets/logo.png',
                 width: 80,
               ),
-
+              Spacer(),
               // Right side icons
               Row(
                 children: [
-                  Icon(Icons.settings, color: Colors.white, size: 20),
+                  Image.asset(
+                    'assets/setting-2.png',
+                    color: Colors.white,
+                    width: 24,
+                    height: 24,
+                  ),
                   SizedBox(width: 16),
-                  Icon(Icons.notifications_outlined,
-                      color: Colors.white, size: 20),
+                  Image.asset(
+                    'assets/Icons.png',
+                    color: Colors.white,
+                    width: 24,
+                    height: 24,
+                  ),
                   SizedBox(width: 16),
+                  Container(
+                    width: 1,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: HexColor('484848'),
+                    ),
+                  ),
+                  SizedBox(width: 12),
                   CircleAvatar(
                     radius: 14,
                     backgroundImage: AssetImage('assets/Frame 77134.png'),
@@ -429,20 +532,21 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
         children: [
           Text(
             'Items',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: HexColor('1E1E1E'),
+              color: HexColor('171717'),
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Icon(
-                Icons.filter_list,
+              child: Image.asset(
+                'assets/Vector.png',
                 color: Colors.white,
-                size: 20,
+                width: 15,
+                height: 15,
               ),
             ),
           ),
@@ -511,8 +615,8 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black.withOpacity(0.2), width: 1),
       ),
-      // Fixed height for a more compact card
-      height: 180,
+
+      height: 600, // Match the height from the screenshot
       child: Padding(
         padding: const EdgeInsets.only(
           right: 15,
@@ -522,28 +626,23 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // Status button
-
-                  // More menu button
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.more_horiz,
-                          color: Colors.white.withOpacity(0.9),
-                          size: 14,
-                        ),
+                  // More menu button (positioned on the right)
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.4),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.more_horiz,
+                        color: Colors.white.withOpacity(0.9),
+                        size: 14,
                       ),
                     ),
                   ),
@@ -605,12 +704,15 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                     height: 18,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    task.date,
-                    style: GoogleFonts.inter(
-                      color:HexColor('999999'),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
+                  Expanded(
+                    child: Text(
+                      task.date,
+                      maxLines: 2,
+                      style: GoogleFonts.inter(
+                        color: HexColor('999999'),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ],
@@ -634,12 +736,18 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildAvatarStack(task),
-                  Text(
-                    '${task.unfinishedTasks} unfinished tasks',
-                    style: GoogleFonts.inter(
-                      color:HexColor('999999'),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
+                  SizedBox(
+                    width: 50,
+                    child: Text(
+                      '${task.unfinishedTasks} unfinished tasks',
+                      style: GoogleFonts.inter(
+                        color: HexColor('999999'),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.right,
+                      maxLines: 2, 
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -649,6 +757,112 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
         ),
       ),
     );
+  }
+
+  // Build the navigation drawer with tabs
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: HexColor('1E1E1E'),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Drawer header with logo
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset(
+                    'assets/logo.png',
+                    width: 80,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Divider(color: Colors.white.withOpacity(0.1)),
+            // Navigation items
+            ..._navItems.asMap().entries.map((entry) {
+              final int index = entry.key;
+              final String item = entry.value;
+              return ListTile(
+                selected: _selectedNavIndex == index,
+                selectedTileColor: HexColor('262626'),
+                leading: Icon(
+                  _getIconForNavItem(index),
+                  color:
+                      _selectedNavIndex == index ? Colors.white : Colors.grey,
+                ),
+                title: Text(
+                  item,
+                  style: GoogleFonts.inter(
+                    color:
+                        _selectedNavIndex == index ? Colors.white : Colors.grey,
+                    fontWeight: _selectedNavIndex == index
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                  ),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedNavIndex = index;
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+            Divider(color: Colors.white.withOpacity(0.1)),
+            // Settings and profile options
+            ListTile(
+              leading: Icon(Icons.settings, color: Colors.grey),
+              title: Text(
+                'Settings',
+                style: GoogleFonts.inter(color: Colors.grey),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to settings
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.grey),
+              title: Text(
+                'Profile',
+                style: GoogleFonts.inter(color: Colors.grey),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to profile
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method to get icons for navigation items
+  IconData _getIconForNavItem(int index) {
+    switch (index) {
+      case 0:
+        return Icons.dashboard_outlined;
+      case 1:
+        return Icons.attach_money;
+      case 2:
+        return Icons.info_outline;
+      case 3:
+        return Icons.task_alt;
+      case 4:
+        return Icons.analytics_outlined;
+      default:
+        return Icons.circle_outlined;
+    }
   }
 
   Widget _buildAvatarStack(final TaskItem task) {
@@ -733,20 +947,4 @@ class _TaskManagerHomePageState extends State<TaskManagerHomePage> {
   }
 }
 
-class TaskItem {
-  final String title;
-  final DateTime startDate;
-  final DateTime endDate;
-  final int unfinishedTasks;
-  final String date;
-  final int? circle;
-
-  TaskItem({
-    required this.title,
-    required this.startDate,
-    required this.endDate,
-    required this.unfinishedTasks,
-    required this.date,
-    required this.circle,
-  });
-}
+// TaskItem class has been moved to models/task_item.dart
